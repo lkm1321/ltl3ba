@@ -47,7 +47,7 @@
 |*              Structures and shared variables                     *|
 \********************************************************************/
 
-extern FILE *tl_out;
+extern std::ostream tl_out;
 extern std::map<cset, ATrans*> **transition;
 #ifdef STATS
 extern struct rusage tr_debut, tr_fin;
@@ -308,9 +308,8 @@ int simplify_gtrans() /* simplifies the transitions */
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "\nSimplification of the generalized Buchi automaton - transitions: %li.%06lis",
-    t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i transitions removed\n", changed);
+    tl_out << "\nSimplification of the generalized Buchi automaton - transitions: " << t_diff.tv_sec << "." << t_diff.tv_usec;
+    tl_out << "\n" << changed << "transitions removed\n";
   }
 #endif
 
@@ -453,9 +452,8 @@ int simplify_gstates() /* eliminates redundant states */
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "\nSimplification of the generalized Buchi automaton - states: %li.%06lis",
-                t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i states removed\n", changed);
+    tl_out << "\nSimplification of the generalized Buchi automaton - states: " << t_diff.tv_sec << "." << t_diff.tv_usec;
+    tl_out << "\n" << changed << "states removed\n";
   }
 #endif
 
@@ -891,37 +889,37 @@ void reverse_print_generalized(GState *s) /* dumps the generalized Buchi automat
   std::map<GState*, std::map<cset, bdd>, GStateComp>::iterator t;
   std::map<cset, bdd>::iterator t2;
   
-  fprintf(tl_out, "state %i (", s->id);
+  tl_out << "state " << s->id << " (";
   s->nodes_set->print();
-  fprintf(tl_out, ") : %i\n", s->incoming);
+  tl_out << ") : " << s->incoming << "\n";
     for(t = s->trans->begin(); t != s->trans->end(); t++) {
       for(t2 = t->second.begin(); t2 != t->second.end(); t2++) {
         if (t2->second == bdd_true()) {
-          fprintf(tl_out, "(1)");
+          tl_out << "(1)";
         } else {
           print_or = 0;
           bdd_allsat(t2->second, allsatPrintHandler);
         }
-        fprintf(tl_out, " -> %i : ", t->first->id);
+        tl_out << " ->" << t->first->id << ": ";
         t2->first.print();
-        fprintf(tl_out, "\n");
+        tl_out << "\n";
       }
     }
 }
 
 void print_generalized() { /* prints intial states and calls 'reverse_print' */
   int i;
-  fprintf(tl_out, "init :\n");
+  tl_out << "init :\n";
   for(i = 0; i < init_size; i++)
     if(init[i])
-      fprintf(tl_out, "%i\n", init[i]->id);
+      tl_out << init[i]->id << "\n";
   reverse_print_generalized(gstates->nxt);
 }
 
 void print_tgba_acc(int i) {
-  fprintf(tl_out, " \"");
+  tl_out << " \"";
   dump(label[i]);
-  fprintf(tl_out, "\"");
+  tl_out << "\"";
 }
 
 void print_tgba_acc_set(const cset& set) {
@@ -939,17 +937,17 @@ void print_tgba_state_name(const cset* set, bool is_hoaf) {
   int i;
   
   if (list[0] <= 1) {
-    fprintf(tl_out, (is_hoaf ? "\"t\"" : "\"1\""));
+    tl_out << (is_hoaf ? "\"t\"" : "\"1\"");
   } else {
-    fprintf(tl_out, "\"");
+    tl_out << "\"";
     for(i = 1; i < list[0];) {
      	dump(label[list[i]]);
      	i++;
      	if (i < list[0]) {
-     	  fprintf(tl_out, " && ");
+     	  tl_out << " && ";
      	}
    	}
-    fprintf(tl_out, "\"");
+    tl_out << "\"";
   }
 }
 
@@ -960,19 +958,19 @@ void print_tgba_all_transitions_of(const GState* s) {
   for(t = s->trans->begin(); t != s->trans->end(); t++) {
     for(t2 = t->second.begin(); t2 != t->second.end(); t2++) {
       print_tgba_state_name(s->nodes_set, false);
-      fprintf(tl_out, ", ");
+      tl_out << ", ";
       print_tgba_state_name(t->first->nodes_set, false);
-      fprintf(tl_out, ", \"");
+      tl_out << ", \"";
       if (t2->second == bdd_true()) {
-        fprintf(tl_out, "1");
+        tl_out << "1";
       } else {
         print_or = 0;
         bdd_allsat(t2->second, allsatPrintHandler);
       }
-      fprintf(tl_out, "\",");
+      tl_out << "\",";
 
       print_tgba_acc_set(t2->first);
-      fprintf(tl_out, ";\n");
+      tl_out << ";\n";
     }
   }
 }
@@ -981,23 +979,23 @@ void print_tgba() {
   int i;
   GState *s;
   
-  fprintf(tl_out, "acc =");
+  tl_out << "acc =";
   for(i = 1; i < final[0]; i++) {
     print_tgba_acc(final[i]);
   }
-  fprintf(tl_out, ";\n");
+  tl_out << ";\n";
 
   for (s = gstates->prv; s != gstates; s = s->prv)
     s->incoming = 0;
 
   if(init_size > 1) {
-    fprintf(tl_out, "init =");
+    tl_out << "init =";
     for(i = 0; i < init_size; i++)
       if(init[i]) {
-        fprintf(tl_out, " ");
+        tl_out << " ";
         print_tgba_state_name(init[i]->nodes_set, false);
       }
-    fprintf(tl_out, ";\n");
+    tl_out << ";\n";
   }
 
   for(i = 0; i < init_size; i++) {
@@ -1017,14 +1015,14 @@ void print_generalized_hoaf_acc_set(const cset& set,
                                     const std::map<int, int>& final2Int) {
   int *list = set.to_list();
   if (list[0] > 1)
-    fprintf(tl_out, " {");
+    tl_out << " {";
   for(int i = 1; i < list[0]; i++) {
     if (i > 1)
-      fprintf(tl_out, " ");
-    fprintf(tl_out, "%d", final2Int.find(list[i])->second);
+      tl_out << " ";
+    tl_out << final2Int.find(list[i])->second;
   }
   if (list[0] > 1)
-    fprintf(tl_out, "}");
+    tl_out << "}";
   tfree(list);
 }
 
@@ -1033,37 +1031,37 @@ void print_generalized_hoaf_header(int states,
                                    const std::map<int, int>& final2Int,
                                    const std::map<GState*, int>& gstate2Int,
                                    const std::string& name) {
-  fprintf(tl_out, "HOA: v1\n");
-  fprintf(tl_out, "tool: \"ltl3ba\" \"%s\"\n", VERSION_NUM);
-  fprintf(tl_out, "name: \"%s for ", name.c_str());
+  tl_out << "HOA: v1\n";
+  tl_out << "tool: \"ltl3ba\" \"" << VERSION_NUM "\"\n";
+  tl_out << "name: \"" << name.c_str() << "for ";
   put_uform();
-  fprintf(tl_out, "\"\n");
-  fprintf(tl_out, "States: %d\n", states);
+  tl_out << "\"\n";
+  tl_out << "States: " << states << "\n";
   if (states > 0) {
     for(int i = 0; i < init_states; i++)
       if(init[i])
-        fprintf(tl_out, "Start: %d\n", gstate2Int.find(init[i])->second);
-    fprintf(tl_out, "acc-name: generalized-Buchi %u\n", final2Int.size());
-    fprintf(tl_out, "Acceptance: %u", final2Int.size());
+        tl_out << "Start: " << gstate2Int.find(init[i])->second << "\n";
+    tl_out << "acc-name: generalized-Buchi" <<  final2Int.size() << "\n";
+    tl_out << "Acceptance: "<< final2Int.size();
     if (final2Int.size() > 0) {
       for(std::map<int, int>::const_iterator i = final2Int.begin(); i != final2Int.end(); i++) {
         if (i != final2Int.begin())
-          fprintf(tl_out, " &");
-        fprintf(tl_out, " Inf(%d)", i->second);
+          tl_out << " &";
+        tl_out << " Inf(" << i->second << ")";
       }
     } else {
-      fprintf(tl_out, " t");
+      tl_out << " t";
     }
-    fprintf(tl_out, "\n");
-    fprintf(tl_out, "AP: %d", predicates);
+    tl_out << "\n";
+    tl_out << "AP: "<< predicates;
     for (int i = 0; i < predicates; ++i) {
-      fprintf(tl_out, " \"%s\"", sym_table[i]);
+      tl_out << "\"" << sym_table[i] << "\"";
     }
-    fprintf(tl_out, "\n");
-    fprintf(tl_out, "properties: trans-labels explicit-labels trans-acc no-univ-branch\n");
+    tl_out << "\n";
+    tl_out << "properties: trans-labels explicit-labels trans-acc no-univ-branch\n";
   } else {
-    fprintf(tl_out, "acc-name: all\n");
-    fprintf(tl_out, "Acceptance: 0 t\n");
+    tl_out << "acc-name: all\n";
+    tl_out << "Acceptance: 0 t\n";
   }
 }
 
@@ -1085,28 +1083,28 @@ void print_generalized_hoaf(const std::string& name = "TGBA"){
 
   print_generalized_hoaf_header(gstate_count, init_size, final2Int, gstate2Int, name);
 
-  fprintf(tl_out, "--BODY--\n");
+  tl_out << "--BODY--\n";
 
   for(s = gstates->prv; s != gstates; s = s->prv) {
-    fprintf(tl_out, "State: %d ", gstate2Int[s]);
+    tl_out << "State: "<< gstate2Int[s];
     print_tgba_state_name(s->nodes_set, true);
-    fprintf(tl_out, "\n");
+    tl_out << "\n";
     for(t = s->trans->begin(); t != s->trans->end(); t++) {
       for(t2 = t->second.begin(); t2 != t->second.end(); t2++) {
-        fprintf(tl_out, " [");
+        tl_out << " [";
         if (t2->second == bdd_true()) {
-          fprintf(tl_out, "t");
+          tl_out << "t";
         } else {
           print_or = 0;
           bdd_allsat(t2->second, allsatPrintHandler_hoaf);
         }
-        fprintf(tl_out, "] %d", gstate2Int[t->first]);
+        tl_out << "] "<< gstate2Int[t->first];
         print_generalized_hoaf_acc_set(t2->first, final2Int);
-        fprintf(tl_out, "\n");
+        tl_out << "\n";
       }
     }
   }
-  fprintf(tl_out, "--END--\n");
+  tl_out << "--END--\n";
 }
 
 void init_empty_t() {
@@ -1186,9 +1184,8 @@ void mk_generalized()
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "\nBuilding the generalized Buchi automaton : %li.%06lis",
-    t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i states, %i transitions\n", gstate_count, gtrans_count);
+    tl_out << "\nBuilding the generalized Buchi automaton : " << t_diff.tv_sec << "." << t_diff.tv_usec;
+    tl_out << "\n" << gstate_count << "states, " << gtrans_count << " transitions\n";
   }
 #endif
 
@@ -1201,12 +1198,12 @@ void mk_generalized()
 
   if(tl_verbose) {
     if (tl_verbose == 1) {
-      fprintf(tl_out, "Generalized Buchi automaton before simplification\n");
+      tl_out << "Generalized Buchi automaton before simplification\n";
       print_generalized();
     } else {
       print_generalized_hoaf("TGBA before simplification");
     }
-    fprintf(tl_out, "\n");
+    tl_out << "\n";
   }
 
   if(tl_simp_diff) {
@@ -1221,12 +1218,12 @@ void mk_generalized()
     
     if(tl_verbose) {
       if (tl_verbose == 1) {
-        fprintf(tl_out, "Generalized Buchi automaton after simplification\n");
+        tl_out << "Generalized Buchi automaton after simplification\n";
         print_generalized();
       } else {
         print_generalized_hoaf();
       }
-      fprintf(tl_out, "\n");
+      tl_out << "\n";
     }
   }
   

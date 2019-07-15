@@ -114,6 +114,8 @@ releasenode(int all_levels, Node *n)
 		releasenode(1, n->rgt);
 		n->rgt = ZN;
 	}
+	// efree(n);
+	// tfree(n);
 	tfree((void *) n);
 }
 

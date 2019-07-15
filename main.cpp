@@ -39,12 +39,13 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #ifdef MATLAB_MEX_FILE
 #include "mex.h"
 #endif
 
-FILE	*tl_out;
+std::ostream tl_out(NULL); 
 
 #ifdef STATS
 int	tl_stats     = 0; /* time and size stats */	
@@ -72,6 +73,9 @@ int tl_errs      = 0;
 int tl_verbose   = 0;
 int tl_terse     = 0;
 unsigned long	All_Mem = 0;
+extern union M* freelist[];
+extern long	req[];
+// extern long	event[][];
 
 std::string uform;
 static int	hasuform=0, cnt=0;
@@ -92,10 +96,24 @@ char *
 emalloc(int n)
 {       char *tmp;
 
+#ifndef MATLAB_MEX_FILE
         if (!(tmp = (char *) malloc(n)))
+#else
+        if (!(tmp = (char* ) mxMalloc(n)))
+#endif
                 fatal("not enough memory", (char *)0);
         memset(tmp, 0, n);
         return tmp;
+}
+
+void 
+efree(void * ptr)
+{
+  #ifndef MATLAB_MEX_FILE
+    free(ptr);
+  #else
+    mxFree(ptr);
+  #endif
 }
 
 int
@@ -110,7 +128,7 @@ tl_Getchar(void)
 void
 put_uform(void)
 {
-	fprintf(tl_out, "%s", uform.c_str());
+	tl_out << uform.c_str();
 }
 
 void
@@ -203,57 +221,74 @@ unknown_option(const char* str)
 void
 mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+
+  /* Check for proper number of input and output arguments */
+  if (nrhs != 1) { 
+    mexErrMsgIdAndTxt( "MATLAB:mxmalloc:invalidNumInputs", 
+              "One input argument required.");
+  } 
+  if (nlhs != 1) {
+    mexErrMsgIdAndTxt( "MATLAB:MXMALLOC:maxlhs",
+              "One output argument required.");
+  }
+  
+  /* Check for proper input type */
+  if (!mxIsChar(prhs[0]) || (mxGetM(prhs[0]) != 1 ) )  {
+    mexErrMsgIdAndTxt( "MATLAB:mxmalloc:invalidInput", 
+              "Input argument must be a string.");
+  }
+
+  /* Get number of characters in the input string.  Allocate enough
+      memory to hold the converted string. */
   char *buf; 
   size_t buflen; 
   int status; 
 
-  char* outbuf; 
-  size_t outbuf_size; 
 
-  tl_out = open_memstream(&outbuf, &outbuf_size); 
-    /* Check for proper number of input and output arguments */
-    if (nrhs != 1) { 
-	    mexErrMsgIdAndTxt( "MATLAB:mxmalloc:invalidNumInputs", 
-                "One input argument required.");
-    } 
-    if (nlhs != 1) {
-	    mexErrMsgIdAndTxt( "MATLAB:MXMALLOC:maxlhs",
-                "One output argument required.");
-    }
-    
-    /* Check for proper input type */
-    if (!mxIsChar(prhs[0]) || (mxGetM(prhs[0]) != 1 ) )  {
-	    mexErrMsgIdAndTxt( "MATLAB:mxmalloc:invalidInput", 
-                "Input argument must be a string.");
-    }
+  buflen = mxGetN(prhs[0]) + 1;
+  buf = (char*) mxMalloc(buflen);
+      
+  /* Copy the string data into buf. */ 
+  status = mxGetString(prhs[0], buf, (mwSize) buflen);
 
-    /* Get number of characters in the input string.  Allocate enough
-       memory to hold the converted string. */
-    
-    buflen = mxGetN(prhs[0]) + 1;
-    buf = (char*) mxMalloc(buflen);
-        
-    /* Copy the string data into buf. */ 
-    status = mxGetString(prhs[0], buf, (mwSize) buflen);
+  if (status != 0) {
+      mexErrMsgIdAndTxt( "MATLAB:mxmalloc:mxGetString", 
+                          "Failed to copy input string into allocated memory.");
+  }
+  std::string input(buf); 
 
-    if (status != 0) {
-        mexErrMsgIdAndTxt( "MATLAB:mxmalloc:mxGetString", 
-                           "Failed to copy input string into allocated memory.");
-    }
-    std::string input(buf); 
+  std::ostringstream matlab_out; 
+  std::streambuf* matlab_out_ptr = matlab_out.rdbuf();
+  tl_out.rdbuf(matlab_out_ptr);
+
+  // use hanoi omega format. 
+  tl_hoaf = 3; 
+  // std::cout << "Input is: " << input << std::endl; 
+  // std::cout << "Input buffer is: " << buf << std::endl; 
 
   tl_main(input);
-  fflush(tl_out);
-  fclose(tl_out); 
+
+  std::string matlab_out_str = matlab_out.str(); 
+  char* outbuf = (char*) mxCalloc( matlab_out_str.length(), sizeof(char) ); 
+  strcpy(outbuf, matlab_out_str.c_str()); 
+
   plhs[0] = mxCreateString(outbuf); 
-  free(outbuf); 
+  // std::cout << "Output is: " << matlab_out.str() << std::endl; 
+  // free_all();
+  // mxFree(event);
+  // mxFree(req);
+  // mxDestroyArray(plhs[0]);
+  mxFree(buf);
+
+  return; 
 }
 #endif
 
 int
 main(int argc, char *argv[])
 {	int i;
-	tl_out = stdout;
+  std::streambuf* cout_ptr = std::cout.rdbuf(); 
+  tl_out.rdbuf(cout_ptr);
 
 	while (argc > 1 && argv[1][0] == '-')
         {       switch (argv[1][1]) {
@@ -387,11 +422,11 @@ tl_endstats(void)
 #endif
 
 #define Binop(a)		\
-		fprintf(tl_out, "(");	\
+		tl_out << "(";	\
 		dump(n->lft);		\
-		fprintf(tl_out, a);	\
+		tl_out << a;	\
 		dump(n->rgt);		\
-		fprintf(tl_out, ")")
+		tl_out << ")";
 
 void
 dump(Node *n)
@@ -403,7 +438,7 @@ dump(Node *n)
 	case AND:	Binop(" && "); break;
 	case U_OPER:
 	  if(is_F(n)) {
-	    fprintf(tl_out, "F");
+	    tl_out << "F";
 	    dump(n->rgt);
 	  } else {
 	    Binop(" U ");
@@ -411,7 +446,7 @@ dump(Node *n)
 	  break;
 	case V_OPER:
 	  if(is_G(n)) {
-	    fprintf(tl_out, "G");
+	    tl_out << "G";
 	    dump(n->rgt);
 	  } else {
 	   	Binop(" R ");
@@ -419,29 +454,29 @@ dump(Node *n)
 	  break;
 #ifdef NXT
 	case NEXT:
-		fprintf(tl_out, "X");
-		fprintf(tl_out, " (");
+		tl_out << "X";
+		tl_out << " (";
 		dump(n->lft);
-		fprintf(tl_out, ")");
+		tl_out << ")";
 		break;
 #endif
 	case NOT:
-		fprintf(tl_out, "!");
-		fprintf(tl_out, "(");
+		tl_out << "!";
+		tl_out << "(";
 		dump(n->lft);
-		fprintf(tl_out, ")");
+		tl_out << ")";
 		break;
 	case FALSE:
-		fprintf(tl_out, "false");
+		tl_out << "false";
 		break;
 	case TRUE:
-		fprintf(tl_out, "true");
+		tl_out << "true";
 		break;
 	case PREDICATE:
-		fprintf(tl_out, "(%s)", n->sym->name);
+		tl_out << "(" << n->sym->name << ")";
 		break;
 	case -1:
-		fprintf(tl_out, " D ");
+		tl_out << " D ";
 		break;
 	default:
 		printf("Unknown token: ");

@@ -35,7 +35,7 @@
 
 #include "ltl3ba.h"
 
-extern FILE *tl_out;
+extern std::ostream tl_out;
 extern int node_size, sym_size, scc_size;
 extern char **sym_table;
 
@@ -150,45 +150,45 @@ std::ostream& print_set_out(std::ostream& out , int *l, int type) /* prints the 
 void print_set(int *l, int type) /* prints the content of a set */
 {
   int i, j, start = 1;
-  if(type != 1) fprintf(tl_out, "{");
+  if(type != 1) tl_out << "{";
   for(i = 0; i < set_size(type); i++) 
     for(j = 0; j < mod; j++)
       if(l[i] & (1 << j)) {
         switch(type) {
           case 0: case 2:
-            if(!start) fprintf(tl_out, ",");
-            fprintf(tl_out, "%i", mod * i + j);
+            if(!start) tl_out << ",";
+            tl_out << mod * i + j;
             break;
           case 1:
-            if(!start) fprintf(tl_out, " & ");
-            fprintf(tl_out, "%s", sym_table[mod * i + j]);
+            if(!start) tl_out << " & ";
+            tl_out << sym_table[mod * i + j];
             break;
         }
         start = 0;
       }
-  if(type != 1) fprintf(tl_out, "}");
+  if(type != 1) tl_out << "}";
 }
 
 void print_set_neg(int *l, int type) /* prints the content of a set */
 {
   int i, j, start = 1;
-  if(type != 1) fprintf(tl_out, "{");
+  if(type != 1) tl_out << "{";
   for(i = 0; i < set_size(type); i++) 
     for(j = 0; j < mod; j++)
       if(l[i] & (1 << j)) {
         switch(type) {
           case 0: case 2:
-            if(!start) fprintf(tl_out, ",");
-            fprintf(tl_out, "!%i", mod * i + j);
+            if(!start) tl_out << ",";
+            tl_out << "!" << mod * i + j;
             break;
           case 1:
-            if(!start) fprintf(tl_out, " & ");
-            fprintf(tl_out, "!%s", sym_table[mod * i + j]);
+            if(!start) tl_out << " & ";
+            tl_out << "!" << sym_table[mod * i + j];
             break;
         }
         start = 0;
       }
-  if(type != 1) fprintf(tl_out, "}");
+  if(type != 1) tl_out << "}";
 }
 
 

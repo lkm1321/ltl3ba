@@ -38,7 +38,6 @@ BUDDY_SOURCES=  $(BUDDY_SRC)/bddio.c \
 				$(BUDDY_SRC)/bddop.c \
 				$(BUDDY_SRC)/bvec.c \
 				$(BUDDY_SRC)/cache.c \
-				$(BUDDY_SRC)/cppext.cxx \
 				$(BUDDY_SRC)/fdd.c \
 				$(BUDDY_SRC)/imatrix.c \
 				$(BUDDY_SRC)/kernel.c \
@@ -83,10 +82,12 @@ LTL3BA_SOURCES= lex.cpp parse.cpp trans.cpp buchi.cpp cset.cpp set.cpp \
 OBJECTS := $(BUDDY_OBJECTS) $(LTL3BA)
 
 ltl3ba:	$(OBJECTS)
-		$(CXX) $(CPPFLAGS) main.cpp -o ltl3ba.exe $(OBJECTS)
+		$(CXX) $(CPPFLAGS) $(BUDDY_SRC)/cppext.cxx main.cpp -o ltl3ba.exe $(OBJECTS)
 
-matlab: $(BUDDY_OBJECTS)
-		mex -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) main.cpp -output ltl3ba
+matlab: 
+		# mex -f mex_toolchain/x86_64_w64_mingw32_g++.xml -setup:mex_toolchain/x86_64_w64_mingw32_g++.xml C++
+		mex -g -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -DYY_MALLOC_DECL -outdir $(BUDDY_SRC) 
+		mex -g -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 # $(LTL3BA): ltl3ba.h
 
 clean:

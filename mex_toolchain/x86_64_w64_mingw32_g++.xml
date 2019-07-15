@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config Name="x86_64-w64-mingw32-g++" ShortName="mingw32-g++" Manufacturer="MinGW" Version="" Language="C++" Priority="B" Location="$GCC">
 	<Details CompilerExecutable="$CXX" CompilerDefines="$DEFINES" CompilerFlags="$CXXFLAGS" OptimizationFlags="$CXXOPTIMFLAGS" DebugFlags="$CXXDEBUGFLAGS" IncludeFlags="$INCLUDE" LinkerExecutable="$LDXX" LinkerFlags="$LDFLAGS $LDTYPE" LinkerLibraries="$LINKLIBS" LinkerOptimizationFlags="$LDOPTIMFLAGS" LinkerDebugFlags="$LDDEBUGFLAGS" CompilerDefineFormatter="-D%s" LinkerLibrarySwitchFormatter="-l%s" LinkerPathFormatter="-L%s"/>
-	<vars CMDLINE1="$CXX -c $DEFINES $INCLUDE $CXXFLAGS $OPTIM $SRC -o $OBJ" CMDLINE2="$LDXX $LDFLAGS $LDTYPE $LINKOPTIM $LINKEXPORTVER $OBJS $CXXLIBS $LINKLIBS -o $EXE" CXX="$GPP" DEFINES="-D_GNU_SOURCE $MATLABMEX" MATLABMEX="-DMATLAB_MEX_FILE " CFLAGS="-fexceptions -fPIC -fno-omit-frame-pointer -pthread -static-libgcc -static-libstdc++" CXXFLAGS="$CFLAGS -std=c++11" INCLUDE="-I&quot;$HOME/local/MATLAB/R2018b_win64/extern/include&quot; -I&quot;$HOME/local/MATLAB/R2018b_win64/simulink/include&quot;" CXXOPTIMFLAGS="-O2 -fwrapv -DNDEBUG" CXXDEBUGFLAGS="-g" LDXX="$CXX" LDFLAGS="-pthread -Wl,--no-undefined -static-libgcc -static-libstdc++" LDTYPE="-shared" LINKEXPORT="-Wl,--version-script,&quot;$HOME/local/MATLAB/R2018b/extern/lib/glnxa64/mexFunction.map&quot;" LINKEXPORTVER="-Wl,--version-script,&quot;$HOME/local/MATLAB/R2018b/extern/lib/glnxa64/c_exportsmexfileversion.map&quot;" LINKLIBS="-Wl,--as-needed -Wl,-rpath-link,$HOME/local/MATLAB/R2018b_win64/bin/win64 -L&quot;$HOME/local/MATLAB/R2018b_win64/bin/win64&quot; -Wl,-rpath-link,$HOME/local/MATLAB/R2018b_win64/extern/bin/win64 -L&quot;$HOME/local/MATLAB/R2018b_win64/extern/bin/win64&quot; -lMatlabDataArray -lmx -lmex -lmat -lm" LDOPTIMFLAGS="-O" LDDEBUGFLAGS="-g" MWCPPLIB="&quot;$HOME/local/MATLAB/R2018b_win64/sys/os/win64/libstdc++-6.dll&quot;" OBJEXT=".o" LDEXT=".mexw64" SETENV="CC=&quot;$CC&quot;
+	<vars CMDLINE1="$CXX -c $DEFINES $INCLUDE $CXXFLAGS $OPTIM $SRC -o $OBJ" 
+	CMDLINE2="$LDXX $LDFLAGS $LDTYPE $LINKOPTIM $LINKEXPORTVER $OBJS $CXXLIBS $LINKLIBS -o $EXE" 
+	CXX="$GPP" 
+	DEFINES="-D_GNU_SOURCE $MATLABMEX" 
+	MATLABMEX="-DMATLAB_MEX_FILE " 
+	CFLAGS="-fexceptions -fPIC -fno-omit-frame-pointer -pthread -static-libgcc -static-libstdc++" 
+	CXXFLAGS="$CFLAGS -std=c++11" 
+	INCLUDE="-I&quot;$HOME/local/MATLAB/R2018b_win64/extern/include&quot; -I&quot;$HOME/local/MATLAB/R2018b_win64/simulink/include&quot;" 
+	CXXOPTIMFLAGS="-O2 -fwrapv -DNDEBUG" CXXDEBUGFLAGS="-g" 
+	LDXX="$CXX" LDFLAGS="-pthread -Wl,--no-undefined -static-libgcc -static-libstdc++" LDTYPE="-shared" 
+	LINKEXPORT="-Wl,--version-script,&quot;$HOME/local/MATLAB/R2018b/extern/lib/glnxa64/mexFunction.map&quot;" 
+	LINKEXPORTVER="-Wl,--version-script,&quot;$HOME/local/MATLAB/R2018b/extern/lib/glnxa64/c_exportsmexfileversion.map&quot;" 
+	LINKLIBS="-Wl,--as-needed -Wl,-rpath-link,$HOME/local/MATLAB/R2018b_win64/bin/win64 -L&quot;$HOME/local/MATLAB/R2018b_win64/bin/win64&quot; -Wl,-rpath-link,$HOME/local/MATLAB/R2018b_win64/extern/bin/win64 -L&quot;$HOME/local/MATLAB/R2018b_win64/extern/bin/win64&quot; -lMatlabDataArray -lmx -lmex -lmat -lm" 
+	LDOPTIMFLAGS="-O" LDDEBUGFLAGS="-g" MWCPPLIB="&quot;$HOME/local/MATLAB/R2018b_win64/sys/os/win64/libstdc++-6.dll&quot;" OBJEXT=".o" LDEXT=".mexw64" SETENV="CC=&quot;$CC&quot;
                 CXX=&quot;$CXX&quot;
                 CFLAGS=&quot;$CFLAGS $DEFINES&quot;
                 CXXFLAGS=&quot;$CXXFLAGS $DEFINES&quot;
@@ -12,7 +25,13 @@
                 LD=&quot;gcc&quot;
                 LDXX=&quot;$LDXX&quot;
                 LDFLAGS=&quot;$LDFLAGS $LDTYPE $LINKLIBS $LINKEXPORT&quot;
-                LDDEBUGFLAGS=&quot;$LDDEBUGFLAGS&quot;" GCC="/usr/bin/x86_64-w64-mingw32-gcc" GPP="/usr/bin/x86_64-w64-mingw32-g++" CPPLIB_DIR="libstdc++.so" VER="7.3-posix" GCCDIR="/usr" GCC_TARGET="x86_64-w64-mingw32"/>
+                LDDEBUGFLAGS=&quot;$LDDEBUGFLAGS&quot;" 
+				GCC="/usr/bin/x86_64-w64-mingw32-gcc" 
+				GPP="/usr/bin/x86_64-w64-mingw32-g++" 
+				CPPLIB_DIR="libstdc++.so" 
+				VER="7.3-posix" 
+				GCCDIR="/usr" 
+				GCC_TARGET="x86_64-w64-mingw32"/>
 	<client>
 		<engine LINKLIBS="$MWCPPLIB -Wl,--as-needed -Wl,-rpath-link,$MATLABROOT/extern/bin/win64 -L&quot;$MATLABROOT/extern/bin/win64&quot; -Wl,-rpath-link,$MATLABROOT/bin/win64 -L&quot;$MATLABROOT/bin/win64&quot; -leng -lMatlabEngine -lMatlabDataArray -lmx -lmat -lm" LINKEXPORT="" LINKEXPORTVER="" LDEXT="" LDTYPE=""/>
 		<mbuild DEFINES="-D_GNU_SOURCE $MATLABMEX -DUNIX -DX11 -DGLNXA64 -DGCC -UMX_COMPAT_SC" CXXFLAGS="-ansi -pthread -std=c++11" INCLUDE="$INCLUDE -I&quot;$MATLABROOT/extern/include/cpp&quot;" LDFLAGS="-pthread -lpthread -Wl,--as-needed -Wl,-rpath-link,$MATLABROOT/bin/win64" LINKEXPORT="" LINKEXPORTVER="" LINKLIBS="$MWCPPLIB -L&quot;$MATLABROOT/runtime/win64&quot; -L&quot;$MATLABROOT/extern/bin/win64&quot; -lm -lmwmclmcrrt -lMatlabDataArray -lMatlabCppSharedLib" LDEXT="" MATLABMEX="" LDTYPE=""/>

@@ -184,6 +184,8 @@ Symbol	*getsym(Symbol *);
 Symbol	*DoDump(Node *);
 
 char	*emalloc(int);
+void efree(void* ptr);
+void free_all(void); 
 
 void put_uform(void);
 

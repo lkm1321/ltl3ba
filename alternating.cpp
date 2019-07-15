@@ -42,7 +42,7 @@
 |*              Structures and shared variables                     *|
 \********************************************************************/
 
-extern FILE *tl_out;
+extern std::ostream tl_out;
 extern int tl_verbose, tl_stats, tl_simp_diff, tl_alt, tl_determinize, tl_det_m,
   tl_f_components, tl_spot_out, tl_hoaf;
 
@@ -616,19 +616,19 @@ void allsatPrintHandler(char* varset, int size)
 {
   int print_and = 0;
   
-  if (print_or) fprintf(tl_out, " || ");
-  fprintf(tl_out, "(");
+  if (print_or) tl_out << " || ";
+  tl_out << "(";
   for (int v=0; v<size; v++)
   {
     if (varset[v] < 0) continue;       
-    if (print_and) fprintf(tl_out, " && ");
+    if (print_and) tl_out << " && ";
     if (varset[v] == 0)
-      fprintf(tl_out, "!%s", sym_table[v]);
+      tl_out << "!" << sym_table[v];
     else
-      fprintf(tl_out, "%s", sym_table[v]);
+      tl_out << "" << sym_table[v];
     print_and = 1;
   }
-  fprintf(tl_out, ")");
+  tl_out << ")";
   print_or = 1;
 }
 
@@ -636,19 +636,19 @@ void allsatPrintHandler_hoaf(char* varset, int size)
 {
   int print_and = 0;
   
-  if (print_or) fprintf(tl_out, " | ");
-  fprintf(tl_out, "(");
+  if (print_or) tl_out << " | ";
+  tl_out << "(";
   for (int v=0; v<size; v++)
   {
     if (varset[v] < 0) continue;       
-    if (print_and) fprintf(tl_out, " & ");
+    if (print_and) tl_out << " & ";
     if (varset[v] == 0)
-      fprintf(tl_out, "!%d", v);
+      tl_out << "!" << v;
     else
-      fprintf(tl_out, "%d", v);
+      tl_out << "" << v;
     print_and = 1;
   }
-  fprintf(tl_out, ")");
+  tl_out << ")";
   print_or = 1;
 }
 
@@ -656,13 +656,13 @@ void print_alternating_hoaf_state(const cset& set,
                                   const std::map<int, int>& astate2Int,
                                   int true_state) {
   if (set.empty()) {
-    fprintf(tl_out, "%d", true_state);
+    tl_out << "" << true_state;
   } else {
     int *list = set.to_list();
     for(int i = 1; i < list[0]; i++) {
       if (i > 1)
-        fprintf(tl_out, "&");
-      fprintf(tl_out, "%d", astate2Int.find(list[i])->second);
+        tl_out << "&";
+      tl_out << "" << astate2Int.find(list[i])->second;
     }
     tfree(list);
   }
@@ -671,32 +671,32 @@ void print_alternating_hoaf_state(const cset& set,
 void print_alternating_hoaf_header(int states,
                                    const std::map<int, int>& astate2Int,
                                    const std::string& name) {
-  fprintf(tl_out, "HOA: v1\n");
-  fprintf(tl_out, "tool: \"ltl3ba\" \"%s\"\n", VERSION_NUM);
-  fprintf(tl_out, "name: \"%s for ", name.c_str());
+  tl_out << "HOA: v1\n";
+  tl_out << "tool: \"ltl3ba\" \n" << VERSION_NUM;
+  tl_out << "name: \"" << name.c_str() << "for ";
   put_uform();
-  fprintf(tl_out, "\"\n");
-  fprintf(tl_out, "States: %d\n", states);
+  tl_out << "\"\n";
+  tl_out << "States: " << states;
   if (states > 0) {
     if (transition[0]) {
       std::map<cset, ATrans*>::iterator t;
       for(t = transition[0]->begin(); t != transition[0]->end(); t++) {
-        fprintf(tl_out, "Start: ");
+        tl_out << "Start: ";
         print_alternating_hoaf_state(t->first, astate2Int, states-1);
-        fprintf(tl_out, "\n");
+        tl_out << "\n";
       }
     }
-    fprintf(tl_out, "acc-name: co-Buchi\n");
-    fprintf(tl_out, "Acceptance: 1 Fin(0)\n");
-    fprintf(tl_out, "AP: %d", predicates);
+    tl_out << "acc-name: co-Buchi\n";
+    tl_out << "Acceptance: 1 Fin(0)\n";
+    tl_out << "AP: " << predicates;
     for (int i = 0; i < predicates; ++i) {
-      fprintf(tl_out, " \"%s\"", sym_table[i]);
+      tl_out << " \""<< sym_table[i] << "\"";
     }
-    fprintf(tl_out, "\n");
-    fprintf(tl_out, "properties: trans-labels explicit-labels state-acc univ-branch very-weak\n");
+    tl_out << "\n";
+    tl_out << "properties: trans-labels explicit-labels state-acc univ-branch very-weak\n";
   } else {
-    fprintf(tl_out, "acc-name: none\n");
-    fprintf(tl_out, "Acceptance: 0 f\n");
+    tl_out << "acc-name: none\n";
+    tl_out << "Acceptance: 0 f\n";
   }
 }
 
@@ -724,37 +724,37 @@ void print_alternating_hoaf(const std::string& name = "VWAA"){
 
   print_alternating_hoaf_header(astate_count, astate2Int, name);
 
-  fprintf(tl_out, "--BODY--\n");
+  tl_out << "--BODY--\n";
 
   for(int i = node_id - 1; i > 0; i--) {
     if(!label[i])
       continue;
-    fprintf(tl_out, "State: %d \"", astate2Int[i]);
+    tl_out << "State:   "<< astate2Int[i];
     dump(label[i]);
     if (in_set(final_set, i))
-      fprintf(tl_out, "\" {0}\n");
+      tl_out << "\" {0}\n";
     else
-      fprintf(tl_out, "\"\n");
+      tl_out << "\"\n";
     if (transition[i])
       for(t = transition[i]->begin(); t != transition[i]->end(); t++) {
-        fprintf(tl_out, " [");
+        tl_out << " [";
         if (t->second->label == bdd_true()) {
-          fprintf(tl_out, "t");
+          tl_out << "t";
         } else {
           print_or = 0;
           bdd_allsat(t->second->label, allsatPrintHandler_hoaf);
         }
-        fprintf(tl_out, "] ");
+        tl_out << "] ";
         print_alternating_hoaf_state(t->first, astate2Int, astate_count-1);
-        fprintf(tl_out, "\n");
+        tl_out << "\n";
       }
   }
   
   if (true_state) {
-    fprintf(tl_out, "State: %d \"t\"\n [t] %d\n", astate_count-1, astate_count-1);
+    tl_out << "State:   "<<  astate_count-1 << astate_count-1 << "\n";
   }
 
-  fprintf(tl_out, "--END--\n");
+  tl_out << "--END--\n";
 }
 
 void print_alternating() /* dumps the alternating automaton */
@@ -762,30 +762,30 @@ void print_alternating() /* dumps the alternating automaton */
   int i;
   std::map<cset, ATrans*>::iterator t;
 
-  fprintf(tl_out, "init :\n");
+  tl_out << "init :\n";
   if (transition[0])
     for(t = transition[0]->begin(); t != transition[0]->end(); t++) {
       t->first.print();
-      fprintf(tl_out, "\n");
+      tl_out << "\n";
     }
   
   for(i = node_id - 1; i > 0; i--) {
     if(!label[i])
       continue;
-    fprintf(tl_out, "state %i : ", i);
+    tl_out << "state   " << i;
     dump(label[i]);
-    fprintf(tl_out, "\n");
+    tl_out << "\n";
     if (transition[i])
       for(t = transition[i]->begin(); t != transition[i]->end(); t++) {
         if (t->second->label == bdd_true()) {
-          fprintf(tl_out, "(1)");
+          tl_out << "(1)";
         } else {
           print_or = 0;
           bdd_allsat(t->second->label, allsatPrintHandler);
         }
-        fprintf(tl_out, " -> ");
+        tl_out << " -> ";
         t->first.print();
-        fprintf(tl_out, "\n");
+        tl_out << "\n";
       }
   }
 }
@@ -966,12 +966,12 @@ void mk_alternating(Node *p) /* generates an alternating automaton for p */
 
   if(tl_verbose) {
     if (tl_verbose == 1) {
-      fprintf(tl_out, "\nAlternating automaton before simplification\n");
+      tl_out << "\nAlternating automaton before simplification\n";
       print_alternating();
     } else {
       print_alternating_hoaf("VWAA before simplification");
     }
-    fprintf(tl_out, "\n");
+    tl_out << "\n";
   }
 
   if(tl_simp_diff) {
@@ -979,12 +979,12 @@ void mk_alternating(Node *p) /* generates an alternating automaton for p */
     oteckuj(nodes_num);
     if(tl_verbose) {
       if (tl_verbose == 1) {
-        fprintf(tl_out, "Alternating automaton after simplification\n");
+        tl_out << "Alternating automaton after simplification\n";
         print_alternating();
       } else {
         print_alternating_hoaf();
       }
-      fprintf(tl_out, "\n");
+      tl_out << "\n";
     }
   } else {
     oteckuj(nodes_num);
@@ -995,9 +995,9 @@ void mk_alternating(Node *p) /* generates an alternating automaton for p */
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "\nBuilding and simplification of the alternating automaton: %li.%06lis",
+    tl_out << "\nBuilding and simplification of the alternating automaton: i <<%06lis",
       t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i states, %i transitions\n", astate_count, atrans_count);
+    tl_out << "\n  <<tates, %i transitions\n", astate_count, atrans_count;
   }
 #endif
 

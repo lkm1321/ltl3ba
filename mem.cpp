@@ -40,7 +40,7 @@
 #define log(e, u, d)
 #endif
 
-#define A_LARGE		80
+#define A_LARGE		10000
 #define A_USER		0x55000000
 #define NOTOOBIG	32768
 
@@ -68,6 +68,15 @@ static union M *freelist[A_LARGE];
 static long	req[A_LARGE];
 static long	event[NREVENT][A_LARGE];
 
+void free_all(void)
+{
+	for (long u = 0; u < A_LARGE; u++)
+	{
+		std::cout << u << std::endl; 
+		// if (freelist[u]) efree(freelist[u]);
+	}
+}
+
 void *
 tl_emalloc(int U)
 {	union M *m;
@@ -76,7 +85,7 @@ tl_emalloc(int U)
 
 	u = (long) ((U-1)/sizeof(union M) + 2);
 
-	if (u >= A_LARGE)
+	if (u > A_LARGE)
 	{	log(ALLOC, 0, 1);
 		if (tl_verbose)
 		printf("tl_spin: memalloc %ld bytes\n", u);
@@ -88,8 +97,7 @@ tl_emalloc(int U)
 			if (r >= NOTOOBIG)
 				r = req[u] = NOTOOBIG;
 			log(POOL, u, r);
-			freelist[u] = (union M *)
-				emalloc((int) r*u*sizeof(union M));
+			freelist[u] = (union M *) emalloc((int) r*u*sizeof(union M));
 			All_Mem += (unsigned long) r*u*sizeof(union M);
 			m = freelist[u] + (r-2)*u;
 			for ( ; m >= freelist[u]; m -= u)
@@ -119,9 +127,10 @@ tfree(void *v)
 		Fatal("releasing a free block", (char *)0);
 
 	u = (m->size &= 0xFFFFFF);
-	if (u >= A_LARGE)
+	if (u > A_LARGE)
 	{	log(FREE, 0, 1);
-		/* free(m); */
+		efree(m);
+		m = NULL; 
 	} else
 	{	log(FREE, u, 1);
 		m->link = freelist[u];

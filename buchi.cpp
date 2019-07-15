@@ -59,7 +59,7 @@ extern int tl_verbose, tl_stats, tl_simp_diff, tl_simp_fly, tl_simp_scc, tl_ltl3
 extern int sym_size, mod, predicates, scc_id, gstate_id;
 extern char **sym_table;
 
-extern FILE *tl_out;
+extern std::ostream tl_out;
 BState *bstack, *bstates, *bremoved;
 BScc *bscc_stack;
 #ifdef DICT
@@ -224,9 +224,9 @@ int simplify_bstates() /* eliminates redundant states */
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "\nSimplification of the Buchi automaton - states: %li.%06lis",
+    tl_out << "\nSimplification of the Buchi automaton - states: i.%06lis" <<
                 t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i states removed\n", changed);
+    tl_out << "\n states removed\n" << changed;
   }
 #endif
 
@@ -894,40 +894,40 @@ void print_buchi(BState *s) /* dumps the Buchi automaton */
 
   print_buchi(s->nxt); /* begins with the last state */
 
-  fprintf(tl_out, "state ");
+  tl_out << "state ";
   if(s->id == -1)
     if(s->final == accept)
-      fprintf(tl_out, "accept_init");
+      tl_out << "accept_init";
     else
-      fprintf(tl_out, "init");
+      tl_out << "init";
   else {
     if(s->final == accept)
-      fprintf(tl_out, "accept");
+      tl_out << "accept";
     else
-      fprintf(tl_out, "T%i", s->final);
-    fprintf(tl_out, "_%i", s->id);
+      tl_out << "T" << s->final;
+    tl_out << "_" << s->id;
   }
-  fprintf(tl_out, "\t %d", s->incoming);
-  fprintf(tl_out, "\n");
+  tl_out << "\t " << s->incoming;
+  tl_out << "\n";
   for(t = s->trans->begin(); t != s->trans->end(); t++) {
     if (t->second == bdd_true()) {
-      fprintf(tl_out, "(1)");
+      tl_out << "(1)";
     } else {
       print_or = 0;
       bdd_allsat(t->second, allsatPrintHandler);
     }
-    fprintf(tl_out, " -> ");
+    tl_out << " -> ";
     if(t->first->id == -1) 
       if(s->final == accept)
-        fprintf(tl_out, "accept_init\n");
+        tl_out << "accept_init\n";
       else
-        fprintf(tl_out, "init\n");
+        tl_out << "init\n";
     else {
       if(t->first->final == accept)
-        fprintf(tl_out, "accept");
+        tl_out << "accept";
       else
-        fprintf(tl_out, "T%i", t->first->final);
-      fprintf(tl_out, "_%i\n", t->first->id);
+        tl_out << "T" << t->first->final;
+      tl_out << "_\n" << t->first->id;
     }
   }
 }
@@ -937,105 +937,105 @@ void print_spin_buchi() {
   BState *s;
   int accept_all = 0;
   if(bstates->nxt == bstates) { /* empty automaton */
-    fprintf(tl_out, "never {    /* ");
+    tl_out << "never {    /* ";
     put_uform();
-    fprintf(tl_out, " */\n");
-    fprintf(tl_out, "T0_init:\n");
-    fprintf(tl_out, "\tfalse;\n");
-    fprintf(tl_out, "}\n");
+    tl_out << " */\n";
+    tl_out << "T0_init:\n";
+    tl_out << "\tfalse;\n";
+    tl_out << "}\n";
     return;
   }
   if(bstates->nxt->nxt == bstates && bstates->nxt->id == 0) { /* true */
-    fprintf(tl_out, "never {    /* ");
+    tl_out << "never {    /* ";
     put_uform();
-    fprintf(tl_out, " */\n");
-    fprintf(tl_out, "accept_init:\n");
-    fprintf(tl_out, "\tif\n");
-    fprintf(tl_out, "\t:: (1) -> goto accept_init\n");
-    fprintf(tl_out, "\tfi;\n");
-    fprintf(tl_out, "}\n");
+    tl_out << " */\n";
+    tl_out << "accept_init:\n";
+    tl_out << "\tif\n";
+    tl_out << "\t:: (1 -> goto accept_init)\n";
+    tl_out << "\tfi;\n";
+    tl_out << "}\n";
     return;
   }
 
-  fprintf(tl_out, "never { /* ");
+  tl_out << "never { /* ";
   put_uform();
-  fprintf(tl_out, " */\n");
+  tl_out << " */\n";
   for(s = bstates->prv; s != bstates; s = s->prv) {
     if(s->id == 0) { /* accept_all at the end */
       accept_all = 1;
       continue;
     }
     if(s->final == accept)
-      fprintf(tl_out, "accept_");
-    else fprintf(tl_out, "T%i_", s->final);
+      tl_out << "accept_";
+    else tl_out << "T_" << s->final;
     if(s->id == -1)
-      fprintf(tl_out, "init:\n");
-    else fprintf(tl_out, "S%i:\n", s->id);
+      tl_out << "init:\n";
+    else tl_out << "S:\n" << s->id;
     if(s->trans->empty()) {
-      fprintf(tl_out, "\tfalse;\n");
+      tl_out << "\tfalse;\n";
       continue;
     }
-    fprintf(tl_out, "\tif\n");
+    tl_out << "\tif\n";
      for(t = s->trans->begin(); t != s->trans->end(); t++) {
-      fprintf(tl_out, "\t:: ");
+      tl_out << "\t:: ";
       if (t->second == bdd_true()) {
-        fprintf(tl_out, "(1)");
+        tl_out << "(1)";
       } else {
         print_or = 0;
         bdd_allsat(t->second, allsatPrintHandler);
       }
-      fprintf(tl_out, " -> goto ");
+      tl_out << " -> goto ";
       if(t->first->final == accept)
-        fprintf(tl_out, "accept_");
-      else fprintf(tl_out, "T%i_", t->first->final);
+        tl_out << "accept_";
+      else tl_out << "T_" << t->first->final;
       if(t->first->id == 0)
-        fprintf(tl_out, "all\n");
+        tl_out << "all\n";
       else if(t->first->id == -1)
-        fprintf(tl_out, "init\n");
-      else fprintf(tl_out, "S%i\n", t->first->id);
+        tl_out << "init\n";
+      else tl_out << "S\n" << t->first->id;
     }
-    fprintf(tl_out, "\tfi;\n");
+    tl_out << "\tfi;\n";
   }
   if(accept_all) {
-    fprintf(tl_out, "accept_all:\n");
-    fprintf(tl_out, "\tskip\n");
+    tl_out << "accept_all:\n";
+    tl_out << "\tskip\n";
   }
-  fprintf(tl_out, "}\n");
+  tl_out << "}\n";
 }
 
 void print_ba_state(BState* s) {
   if(s->final == accept)
-    fprintf(tl_out, "accept_");
-  else fprintf(tl_out, "T%i_", s->final);
+    tl_out << "accept_";
+  else tl_out << "T_" << s->final;
   if(s->id == -1)
-    fprintf(tl_out, "init");
+    tl_out << "init";
   else if(s->id == 0)
-    fprintf(tl_out, "all");
-  else fprintf(tl_out, "S%i", s->id);
+    tl_out << "all";
+  else tl_out << "S" << s->id;
 }
 
 void print_ba_hoaf_header(int states,
                           int init_state,
                           const std::string& name) {
-  fprintf(tl_out, "HOA: v1\n");
-  fprintf(tl_out, "tool: \"ltl3ba\" \"%s\"\n", VERSION_NUM);
-  fprintf(tl_out, "name: \"%s for ", name.c_str());
+  tl_out << "HOA: v1\n";
+  tl_out << "tool: \"ltl3ba\" " << "\"" << VERSION_NUM << "\"\n";
+  tl_out << "name: \"" << name.c_str() << " for "; 
   put_uform();
-  fprintf(tl_out, "\"\n");
-  fprintf(tl_out, "States: %d\n", states);
+  tl_out << "\"\n";
+  tl_out << "States: " << states << "\n";
   if (states > 0) {
-    fprintf(tl_out, "Start: %d\n", init_state);
-    fprintf(tl_out, "acc-name: Buchi\n");
-    fprintf(tl_out, "Acceptance: 1 Inf(0)\n");
-    fprintf(tl_out, "AP: %d", predicates);
+    tl_out << "Start: " << init_state << "\n";
+    tl_out << "acc-name: Buchi\n";
+    tl_out << "Acceptance: 1 Inf(0)\n";
+    tl_out << "AP: " << predicates;
     for (int i = 0; i < predicates; ++i) {
-      fprintf(tl_out, " \"%s\"", sym_table[i]);
+      tl_out << " \"" << sym_table[i] << "\"";
     }
-    fprintf(tl_out, "\n");
-    fprintf(tl_out, "properties: trans-labels explicit-labels state-acc no-univ-branch\n");
+    tl_out << "\n";
+    tl_out << "properties: trans-labels explicit-labels state-acc no-univ-branch\n";
   } else {
-    fprintf(tl_out, "acc-name: Buchi\n");
-    fprintf(tl_out, "Acceptance: 1 Inf(0)\n");
+    tl_out << "acc-name: Buchi\n";
+    tl_out << "Acceptance: 1 Inf(0)\n";
   }
 }
 
@@ -1056,28 +1056,28 @@ void print_ba_hoaf(const std::string& name = "BA") {
   
   print_ba_hoaf_header(bstate_count, init_state, name);
 
-  fprintf(tl_out, "--BODY--\n");
+  tl_out << "--BODY--\n";
 
   for(s = bstates->prv; s != bstates; s = s->prv) {
-    fprintf(tl_out, "State: %d \"", bstate2Int[s]);
+    tl_out << "State: " << bstate2Int[s] << " \"";
     print_ba_state(s);
-    fprintf(tl_out, "\"");
+    tl_out << "\"";
     if(s->final == accept)
-      fprintf(tl_out, " {0}");
-    fprintf(tl_out, "\n");
+      tl_out << " {0}";
+    tl_out << "\n";
     for(t = s->trans->begin(); t != s->trans->end(); t++) {
-        fprintf(tl_out, " [");
+        tl_out << " [";
         if (t->second == bdd_true()) {
-          fprintf(tl_out, "t");
+          tl_out << "t";
         } else {
           print_or = 0;
           bdd_allsat(t->second, allsatPrintHandler_hoaf);
         }
-        fprintf(tl_out, "]");
-      fprintf(tl_out, " %d\n", bstate2Int[t->first]);
+        tl_out << "] ";
+      tl_out << bstate2Int[t->first] << " \n" ;
     }
   }
-  fprintf(tl_out, "--END--\n");
+  tl_out << "--END--\n";
 }
 
 void print_ba() {
@@ -1085,24 +1085,24 @@ void print_ba() {
   BState *s;
   int accept_all = 0;
 
-  fprintf(tl_out, "acc = \"1\";\n");
+  tl_out << "acc = \"1\";\n";
   for(s = bstates->prv; s != bstates; s = s->prv) {
     if (!s->trans->empty()) {
       for(t = s->trans->begin(); t != s->trans->end(); t++) {
         print_ba_state(s);
-        fprintf(tl_out, ", ");
+        tl_out << " << ";
         print_ba_state(t->first);
-        fprintf(tl_out, ", \"");
+        tl_out << " << \"";
         if (t->second == bdd_true()) {
-          fprintf(tl_out, "(1)");
+          tl_out << "(1)";
         } else {
           print_or = 0;
           bdd_allsat(t->second, allsatPrintHandler);
         }
-        fprintf(tl_out, "\",");
+        tl_out << "\" <<";
         if(s->final == accept)
-          fprintf(tl_out, " \"1\"");
-        fprintf(tl_out, ";\n");
+          tl_out << " \"1\"";
+        tl_out << ";\n";
       }
     }
   }
@@ -1193,23 +1193,23 @@ void mk_buchi()
   if(tl_stats) {
     getrusage(RUSAGE_SELF, &tr_fin);
     timeval_subtract (&t_diff, &tr_fin.ru_utime, &tr_debut.ru_utime);
-    fprintf(tl_out, "Building the Buchi automaton : %li.%06lis",
+    tl_out << "Building the Buchi automaton : i.%06lis" <<
                 t_diff.tv_sec, t_diff.tv_usec);
-    fprintf(tl_out, "\n%i states, %i transitions\n", bstate_count, btrans_count);
-    fprintf(tl_out, "\n");
+    tl_out << "\n states << %i transitions\n", bstate_count, btrans_count;
+    tl_out << "\n";
   }
 #endif
 
   if(tl_verbose) {
     if (tl_verbose == 1) {
-      fprintf(tl_out, "Buchi automaton before simplification\n");
+      tl_out << "Buchi automaton before simplification\n";
       print_buchi(bstates->nxt);
       if(bstates == bstates->nxt) 
-        fprintf(tl_out, "empty automaton, refuses all words\n");
+        tl_out << "empty automaton << refuses all words\n";
     } else {
       print_ba_hoaf("BA before simplification");
     }
-    fprintf(tl_out, "\n");
+    tl_out << "\n";
   }
 
   if(tl_simp_diff) {
@@ -1220,14 +1220,14 @@ void mk_buchi()
     
     if(tl_verbose) {
       if (tl_verbose == 1) {
-        fprintf(tl_out, "Buchi automaton after simplification\n");
+        tl_out << "Buchi automaton after simplification\n";
         print_buchi(bstates->nxt);
         if(bstates == bstates->nxt) 
-          fprintf(tl_out, "empty automaton, refuses all words\n");
+          tl_out << "empty automaton << refuses all words\n";
       } else {
         print_ba_hoaf();
       }
-      fprintf(tl_out, "\n");
+      tl_out << "\n";
     }
   }
 
