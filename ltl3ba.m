@@ -1,29 +1,64 @@
 function BA = ltl3ba(formula)
 
+    clear ltl3ba_cpp; 
     hoaf_str = ltl3ba_cpp(formula); 
     clear ltl3ba_cpp; % this is necessary!
-    num_states = get_num_states(hoaf_str); 
-    [num_aps, ap_names] = get_aps(hoaf_str); 
-    body_text = get_body_text(hoaf_str); 
     
+    %% Parsing the header. 
+    % get the number of states
+    num_states = get_num_states(hoaf_str); 
+    
+    % get the number of APs and their names. 
+    [num_aps, ap_names] = get_aps(hoaf_str); 
+
+    % set up the graph. 
     BA = digraph;
     BA = addnode(BA, num_states);
     BA.Nodes.StateNo = (0:(num_states-1))'; 
     BA.Nodes.StateName = cell(num_states, 1); 
     BA.Edges.Condition = cell(0, 1); 
+
+    %% Parsing the body text. 
+
+    % get the body text. 
+    body_text = get_body_text(hoaf_str); 
     
+    % split by state
     body_contents = split(body_text, 'State: '); 
-    body_contents = body_contents(2:end); 
     
+    % matlab always returns empty cell at the start. 
+    body_contents = body_contents(2:end); 
+
+    % for each state
     for iState = 1:length(body_contents)
+        
+        % split into lines. line 1 gives details about the state itself. 
         body_lines = splitlines(body_contents{iState}); 
+
+        % find enclosed in quote. this is the name of state e.g. init. 
+        quote_idx = strfind(body_lines{1}, '"'); 
+        
+        % get the name of state in. 
+        BA.Nodes.StateName{iState} = body_lines{1}( (quote_idx(1)+1):(quote_idx(2)-1)); 
         
         for iEdges = 2:length(body_lines)
+
+            % find enclosed between square brackets. 
             bracket_op = strfind(body_lines{iEdges}, '['); 
             bracket_cl = strfind(body_lines{iEdges}, ']'); 
-            edge_name = body_lines{iEdges}(bracket_op+1:bracket_cl-1); 
+
+            edge_condition = body_lines{iEdges}(bracket_op+1:bracket_cl-1); 
+
+            % replace 0 and 1 with the AP names. 
+            for iAps = 1:num_aps
+                edge_condition = strrep(edge_condition, int2str(iAps-1), ap_names{iAps}); 
+            end
+            
+            % the next BA state this edge is pointing to. 
             neighbour = str2num( body_lines{iEdges}(bracket_cl+1:end) ); 
-            BA = addedge(BA, iState, neighbour + 1, );
+
+            % add the edge. 
+            BA = addedge(BA, iState, neighbour + 1, table({edge_condition}, 'VariableNames', {'Condition'}) );
         end
     end
     
