@@ -66,12 +66,7 @@ BUDDY_OBJECTS := $(patsubst $(BUDDY_SRC)/%.c, $(BUDDY_SRC)/%.o, $(BUDDY_SOURCES)
 # $ make install 
 # and use the default values of BUDDY_INCLUDE and BUDDY_LIB.
 
-CC=gcc
-CXX=g++
-# CC=x86_64-w64-mingw32-gcc
-# CXX=x86_64-w64-mingw32-g++
 CPPFLAGS= -I$(BUDDY_SRC) -static-libgcc -static-libstdc++
-CFLAGS= -fPIC
 
 LTL3BA=	parse.o lex.o trans.o buchi.o cset.o set.o \
 	mem.o rewrt.o cache.o alternating.o generalized.o optim.o
@@ -81,14 +76,36 @@ LTL3BA_SOURCES= lex.cpp parse.cpp trans.cpp buchi.cpp cset.cpp set.cpp \
 
 OBJECTS := $(BUDDY_OBJECTS) $(LTL3BA)
 
-ltl3ba:	$(OBJECTS)
-		$(CXX) $(CPPFLAGS) $(BUDDY_SRC)/cppext.cxx main.cpp -o ltl3ba.exe $(OBJECTS)
+
+MEX_TOOLCHAIN_DIR = mex_toolchain/
+
+.PHONY: _setup_matlab_windows
+
+native: CC=gcc 
+native: CXX=g++
+native: ltl3ba 
+
+windows: CC=x86_64-w64-mingw32-gcc-win32 
+windows: CXX=x86_64-w64-mingw32-g++-win32
+windows: ext=.exe
+windows: ltl3ba
+
+ltl3ba: $(BUDDY_OBJECTS)
+		$(CXX) $(CPPFLAGS) $(BUDDY_SRC)/cppext.cxx main.cpp $(LTL3BA_SOURCES) $(BUDDY_OBJECTS) -o ltl3ba$(ext) 
+
+_setup_matlab_windows: 
+		mex -f mex_toolchain/x86_64_w64_mingw32_g++.xml -setup:$(shell pwd)/mex_toolchain/x86_64_w64_mingw32_g++.xml C++
+		mex -f mex_toolchain/x86_64_w64_mingw32_gcc.xml -setup:$(shell pwd)/mex_toolchain/x86_64_w64_mingw32_gcc.xml C
+
+matlab_windows: CC=x86_64-w64-mingw32-gcc
+matlab_windows: CXX=x86_64-w64-mingw32-g++
+matlab_windows: 
+		mex -v -f $(MEX_TOOLCHAIN_DIR)/$(CC).xml -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
+		mex -v -f $(MEX_TOOLCHAIN_DIR)/$(CXX).xml -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 
 matlab: 
-		# mex -f mex_toolchain/x86_64_w64_mingw32_g++.xml -setup:mex_toolchain/x86_64_w64_mingw32_g++.xml C++
-		mex -g -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -DYY_MALLOC_DECL -outdir $(BUDDY_SRC) 
-		mex -g -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
-# $(LTL3BA): ltl3ba.h
+		mex -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
+		mex -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 
 clean:
 	rm -f ltl3ba *.o core $(BUDDY_SRC)/*.o

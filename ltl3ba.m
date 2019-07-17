@@ -5,20 +5,25 @@ function BA = ltl3ba(formula)
     num_states = get_num_states(hoaf_str); 
     [num_aps, ap_names] = get_aps(hoaf_str); 
     body_text = get_body_text(hoaf_str); 
-     
+    
     BA = digraph;
     BA = addnode(BA, num_states);
     BA.Nodes.StateNo = (0:(num_states-1))'; 
     BA.Nodes.StateName = cell(num_states, 1); 
-
-    newline_location = strfind(body_text, sprintf("\n")); 
-    state_start_location = strfind(body_text, 'State: '); 
-    iNewline = newline_location(1); 
+    BA.Edges.Condition = cell(0, 1); 
     
-    for iState = 1:length(state_start_location)
-        while(state_start_location(iState+1) < newline_location(iNewline))
-           
-            iNewline = iNewline + 1; 
+    body_contents = split(body_text, 'State: '); 
+    body_contents = body_contents(2:end); 
+    
+    for iState = 1:length(body_contents)
+        body_lines = splitlines(body_contents{iState}); 
+        
+        for iEdges = 2:length(body_lines)
+            bracket_op = strfind(body_lines{iEdges}, '['); 
+            bracket_cl = strfind(body_lines{iEdges}, ']'); 
+            edge_name = body_lines{iEdges}(bracket_op+1:bracket_cl-1); 
+            neighbour = str2num( body_lines{iEdges}(bracket_cl+1:end) ); 
+            BA = addedge(BA, iState, neighbour + 1, );
         end
     end
     
@@ -51,6 +56,6 @@ function body_text = get_body_text(hoaf_str)
     start_idx = start_idx + length(body_start_str); 
     end_idx = strfind(hoaf_str, body_end_str); 
     
-    body_text = hoaf_str(start_idx + 1:end_idx); 
+    body_text = hoaf_str(start_idx + 1:(end_idx-1)); 
 
       
