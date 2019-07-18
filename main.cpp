@@ -43,6 +43,8 @@
 
 #ifdef MATLAB_MEX_FILE
 #include "mex.h"
+#include "handlers.h"
+#include <csignal> 
 #endif
 
 std::ostream tl_out(NULL); 
@@ -89,7 +91,9 @@ inline void
 alldone(int estatus)
 {
         bdd_done();
+        #ifndef MATLAB_MEX_FILE
         exit(estatus);
+        #endif
 }
 
 char *
@@ -221,6 +225,7 @@ unknown_option(const char* str)
 void
 mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+  signal(SIGSEGV, sigsegv_handler); 
 
   /* Check for proper number of input and output arguments */
   if (nrhs != 1) { 
@@ -258,28 +263,38 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   std::string input(buf); 
 
   std::ostringstream matlab_out; 
-  std::streambuf* matlab_out_ptr = matlab_out.rdbuf();
-  tl_out.rdbuf(matlab_out_ptr);
+  tl_out.rdbuf(matlab_out.rdbuf());
+
+  std::ostringstream matlab_err; 
+  std::cerr.rdbuf(matlab_err.rdbuf()); 
+
+  // use determinization
+  tl_det_m = 1; 
 
   // use hanoi omega format. 
   tl_hoaf = 3; 
+
   // std::cout << "Input is: " << input << std::endl; 
   // std::cout << "Input buffer is: " << buf << std::endl; 
-
   tl_main(input);
-
-  std::string matlab_out_str = matlab_out.str(); 
-  char* outbuf = (char*) mxCalloc( matlab_out_str.length(), sizeof(char) ); 
-  strcpy(outbuf, matlab_out_str.c_str()); 
-
-  plhs[0] = mxCreateString(outbuf); 
-  // std::cout << "Output is: " << matlab_out.str() << std::endl; 
-  // free_all();
-  // mxFree(event);
-  // mxFree(req);
-  // mxDestroyArray(plhs[0]);
   mxFree(buf);
 
+  if (!tl_errs)
+  {
+    std::string matlab_out_str = matlab_out.str(); 
+    char* outbuf = (char*) mxCalloc( matlab_out_str.length(), sizeof(char) ); 
+    strcpy(outbuf, matlab_out_str.c_str()); 
+
+    plhs[0] = mxCreateString(outbuf); 
+  }
+  else
+  {
+    mexErrMsgIdAndTxt( "MATLAB::ltl3ba_cpp", 
+                        matlab_err.str().c_str());
+    plhs[0] = mxCreateString(""); 
+  }
+  
+  alldone(0);
   return; 
 }
 #endif
