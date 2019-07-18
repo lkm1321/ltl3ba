@@ -106,8 +106,8 @@ matlab_windows:
 matlab: 
 		mex -setup C
 		mex -setup C++
-		mex -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
-		mex -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
+		mex -g -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
+		mex -g -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 
 clean:
 	rm -f ltl3ba *.o core $(BUDDY_SRC)/*.o
