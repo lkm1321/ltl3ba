@@ -43,8 +43,6 @@
 
 #ifdef MATLAB_MEX_FILE
 #include "mex.h"
-#include "handlers.h"
-#include <csignal> 
 #endif
 
 std::ostream tl_out(NULL); 
@@ -90,9 +88,16 @@ static void	non_fatal(char *, char *);
 inline void
 alldone(int estatus)
 {
-        bdd_done();
         #ifndef MATLAB_MEX_FILE
-        exit(estatus);
+          bdd_done();
+          exit(estatus);
+        #else 
+
+        if (tl_errs)
+        {
+          mexErrMsgIdAndTxt( "MATLAB:ltl3ba_cpp:tl_errs", 
+                      "alldone was called with tl_errs > 0");
+        }
         #endif
 }
 
@@ -225,7 +230,7 @@ unknown_option(const char* str)
 void
 mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  signal(SIGSEGV, sigsegv_handler); 
+  char* matlab_buf; 
 
   /* Check for proper number of input and output arguments */
   if (nrhs != 1) { 
@@ -245,22 +250,20 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   /* Get number of characters in the input string.  Allocate enough
       memory to hold the converted string. */
-  char *buf; 
   size_t buflen; 
   int status; 
 
-
   buflen = mxGetN(prhs[0]) + 1;
-  buf = (char*) mxMalloc(buflen);
+  matlab_buf = (char*) mxMalloc(buflen);
       
   /* Copy the string data into buf. */ 
-  status = mxGetString(prhs[0], buf, (mwSize) buflen);
+  status = mxGetString(prhs[0], matlab_buf, (mwSize) buflen);
 
   if (status != 0) {
       mexErrMsgIdAndTxt( "MATLAB:mxmalloc:mxGetString", 
                           "Failed to copy input string into allocated memory.");
   }
-  std::string input(buf); 
+  std::string input(matlab_buf); 
 
   std::ostringstream matlab_out; 
   tl_out.rdbuf(matlab_out.rdbuf());
@@ -277,7 +280,8 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // std::cout << "Input is: " << input << std::endl; 
   // std::cout << "Input buffer is: " << buf << std::endl; 
   tl_main(input);
-  mxFree(buf);
+
+  mxFree(matlab_buf);
 
   if (!tl_errs)
   {
@@ -293,8 +297,10 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         matlab_err.str().c_str());
     plhs[0] = mxCreateString(""); 
   }
-  
-  alldone(0);
+
+
+  // why? not all memory went through matlab?
+  // bdd_done();   
   return; 
 }
 #endif

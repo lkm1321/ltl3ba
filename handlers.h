@@ -1,5 +1,6 @@
 #ifndef __HANDLERS_H
 #define __HANDLERS_H
+#ifndef WIN32
 
 #include <execinfo.h>
 #include <string.h>
@@ -56,5 +57,5 @@ void sigsegv_handler(int signalnum)
     print_backtrace();
 }
 
-
+#endif
 #endif

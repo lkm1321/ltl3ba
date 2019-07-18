@@ -1,8 +1,9 @@
 function BA = ltl3ba(formula)
 
-    clear ltl3ba_cpp; 
+    % clear ltl3ba_cpp; 
     hoaf_str = ltl3ba_cpp(formula); 
-    clear ltl3ba_cpp; % this is necessary!
+    % clear ltl3ba_cpp; % this is necessary!
+    clear mex; 
     
     %% Parsing the header. 
     % get the number of states

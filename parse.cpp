@@ -83,8 +83,10 @@ bin_simpler(Node *ptr)
 {	Node *a, *b;
 
 	if (ptr)
+	{
 	switch (ptr->ntyp) {
 	case U_OPER:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. U is binary"); 
 		if (ptr->rgt->ntyp == TRUE
 		||  ptr->rgt->ntyp == FALSE
 		||  ptr->lft->ntyp == FALSE)
@@ -170,6 +172,7 @@ bin_simpler(Node *ptr)
 		  ptr = ptr->rgt;
 		break;
 	case V_OPER:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. V is binary"); 
 		if (ptr->rgt->ntyp == FALSE
 		||  ptr->rgt->ntyp == TRUE
 		||  ptr->lft->ntyp == TRUE)
@@ -278,6 +281,8 @@ bin_simpler(Node *ptr)
 		break;
 #endif
 	case IMPLIES:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. -> is binary"); 
+
 		if (implies(ptr->lft, ptr->rgt))
 		  {	ptr = True;
 			break;
@@ -287,6 +292,8 @@ bin_simpler(Node *ptr)
 		ptr = bin_simpler(ptr);
 		break;
 	case EQUIV:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. <-> is binary"); 
+
 		if (implies(ptr->lft, ptr->rgt) &&
 		    implies(ptr->rgt, ptr->lft))
 		  {	ptr = True;
@@ -303,6 +310,7 @@ bin_simpler(Node *ptr)
 		ptr = bin_simpler(ptr);
 		break;
 	case AND:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. && is binary"); 
 		/* p && (q U p) = p */
 		if (ptr->rgt->ntyp == U_OPER
 		&&  isequal(ptr->rgt->rgt, ptr->lft))
@@ -484,6 +492,8 @@ bin_simpler(Node *ptr)
 		break;
 
 	case OR:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. || is binary"); 
+
 		/* p || (q U p) == q U p */
 		if (ptr->rgt->ntyp == U_OPER
 		&&  isequal(ptr->rgt->rgt, ptr->lft))
@@ -609,7 +619,8 @@ bin_simpler(Node *ptr)
 		        break;
 		}
 		break;
-	}
+	} // switch(ptr->ntyp)
+	} // if (ptr)
 	return ptr;
 }
 
@@ -618,8 +629,12 @@ bin_minimal(Node *ptr)
 {       if (ptr)
 	switch (ptr->ntyp) {
 	case IMPLIES:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. -> is binary"); 
+
 		return tl_nn(OR, Not(ptr->lft), ptr->rgt);
 	case EQUIV:
+		if ( !(ptr->rgt) || !(ptr->lft) ) tl_yyerror("syntax error. <-> is binary"); 
+
 		return tl_nn(OR, 
 			     tl_nn(AND,dupnode(ptr->lft),dupnode(ptr->rgt)),
 			     tl_nn(AND,Not(ptr->lft),Not(ptr->rgt)));
@@ -735,6 +750,8 @@ again:
 		{	tl_yychar = tl_yylex();
 			ptr = tl_nn(prec[nr][i],
 				ptr, tl_level(nr-1));
+			if (!ptr) tl_yyerror("syntax error");
+
 			if(tl_simp_log) ptr = bin_simpler(ptr);
 			else ptr = bin_minimal(ptr);
 			goto again;

@@ -129,8 +129,8 @@ tfree(void *v)
 	u = (m->size &= 0xFFFFFF);
 	if (u > A_LARGE)
 	{	log(FREE, 0, 1);
-		efree(m);
-		m = NULL; 
+		// efree(m);
+		// m = NULL;
 	} else
 	{	log(FREE, u, 1);
 		m->link = freelist[u];
