@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/adder.dir/adder.cxx.o  -o adder ../../src/libbdd.a 

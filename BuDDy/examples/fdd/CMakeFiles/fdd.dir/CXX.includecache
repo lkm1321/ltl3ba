@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/examples/fdd/fdd.cxx
+fdd.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/examples/fdd/fdd.h
+
+src/bdd.h
+stdio.h
+-
+iostream
+-
+
+src/fdd.h
+bdd.h
+src/bdd.h
+

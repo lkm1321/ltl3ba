@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/queen.dir/queen.cxx.o  -o queen ../../src/libbdd.a 

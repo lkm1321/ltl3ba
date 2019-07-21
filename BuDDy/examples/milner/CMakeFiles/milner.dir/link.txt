@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/milner.dir/milner.cxx.o  -o milner ../../src/libbdd.a 

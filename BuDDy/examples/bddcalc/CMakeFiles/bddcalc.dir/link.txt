@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/bddcalc.dir/hashtbl.cxx.o CMakeFiles/bddcalc.dir/lexer.cxx.o CMakeFiles/bddcalc.dir/parser.cxx.o  -o bddcalc ../../src/libbdd.a 

@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/bdd.h
+stdio.h
+-
+iostream
+-
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/bvec.h
+fdd.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/fdd.h
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/cppext.cxx
+string.h
+-
+stdlib.h
+-
+iomanip
+-
+kernel.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/kernel.h
+bvec.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/bvec.h
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/fdd.h
+bdd.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/bdd.h
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/kernel.h
+limits.h
+-
+setjmp.h
+-
+bdd.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/src/bdd.h
+

@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/examples/milner/milner.cxx
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+bdd.h
+/home/lkm1321/src/tl/ltl3ba-1.1.3/BuDDy/examples/milner/bdd.h
+
+src/bdd.h
+stdio.h
+-
+iostream
+-
+

@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/fdd.dir/fdd.cxx.o  -o fdd ../../src/libbdd.a 

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libbdd.a  CMakeFiles/bdd.dir/bddio.c.o CMakeFiles/bdd.dir/bddop.c.o CMakeFiles/bdd.dir/bvec.c.o CMakeFiles/bdd.dir/cache.c.o CMakeFiles/bdd.dir/cppext.cxx.o CMakeFiles/bdd.dir/fdd.c.o CMakeFiles/bdd.dir/imatrix.c.o CMakeFiles/bdd.dir/kernel.c.o CMakeFiles/bdd.dir/pairs.c.o CMakeFiles/bdd.dir/prime.c.o CMakeFiles/bdd.dir/reorder.c.o CMakeFiles/bdd.dir/tree.c.o
+/usr/bin/ranlib libbdd.a
