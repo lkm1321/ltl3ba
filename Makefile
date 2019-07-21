@@ -91,7 +91,7 @@ windows: ext=.exe
 windows: ltl3ba
 
 ltl3ba: $(BUDDY_OBJECTS)
-		$(CXX) $(CPPFLAGS) $(BUDDY_SRC)/cppext.cxx main.cpp $(LTL3BA_SOURCES) $(BUDDY_OBJECTS) -o ltl3ba$(ext) 
+		$(CXX) $(CPPFLAGS) -DNXT $(BUDDY_SRC)/cppext.cxx main.cpp $(LTL3BA_SOURCES) $(BUDDY_OBJECTS) -o ltl3ba$(ext) 
 
 _setup_matlab_windows: 
 		mex -f mex_toolchain/x86_64_w64_mingw32_g++.xml -setup:$(shell pwd)/mex_toolchain/x86_64_w64_mingw32_g++.xml C++
@@ -100,14 +100,14 @@ _setup_matlab_windows:
 matlab_windows: CC=x86_64-w64-mingw32-gcc
 matlab_windows: CXX=x86_64-w64-mingw32-g++
 matlab_windows: 
-		mex -v -f $(MEX_TOOLCHAIN_DIR)/$(CC).xml -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
-		mex -v -f $(MEX_TOOLCHAIN_DIR)/$(CXX).xml -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
+		mex -v -DNXT -f $(MEX_TOOLCHAIN_DIR)/$(CC).xml -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
+		mex -v -DNXT -f $(MEX_TOOLCHAIN_DIR)/$(CXX).xml -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 
 matlab: 
 		mex -setup C
 		mex -setup C++
-		mex -g -I$(BUDDY_SRC) -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
-		mex -g -I$(BUDDY_SRC) $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
+		mex -g -I$(BUDDY_SRC) -DNXT -c $(BUDDY_SOURCES) -outdir $(BUDDY_SRC) 
+		mex -g -I$(BUDDY_SRC) -DNXT $(BUDDY_OBJECTS) $(LTL3BA_SOURCES) $(BUDDY_SRC)/cppext.cxx main.cpp -output ltl3ba_cpp
 
 clean:
 	rm -f ltl3ba *.o core $(BUDDY_SRC)/*.o
